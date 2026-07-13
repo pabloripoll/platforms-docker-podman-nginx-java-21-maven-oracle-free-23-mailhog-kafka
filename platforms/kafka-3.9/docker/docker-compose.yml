@@ -25,8 +25,8 @@ services:
       # where Kafka stores data in the container
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     #volumes:
-    #  - ${COMPOSE_PORT_DATA}:/var/lib/kafka/data        # Persist data between restarts
-    #  - ${COMPOSE_PORT_LOGS}:/var/log/kafka
+    #  - ${COMPOSE_DATA}:/var/lib/kafka/data        # Persist data between restarts
+    #  - ${COMPOSE_LOGS}:/var/log/kafka
     restart: unless-stopped
 
 volumes:
