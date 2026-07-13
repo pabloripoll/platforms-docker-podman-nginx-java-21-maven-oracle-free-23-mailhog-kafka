@@ -253,52 +253,104 @@ mailer-destroy: ## destroys completly the mailer container
 	fi
 
 # -------------------------------------------------------------------------------------------------
-#  Broker Service
+#  Broker & Client
 # -------------------------------------------------------------------------------------------------
-.PHONY: broker-hostcheck broker-info broker-set broker-create broker-network broker-ssh broker-start broker-stop broker-destroy
+.PHONY: broker-host-check broker-set
 
-broker-hostcheck: ## shows this project ports availability on local machine for broker container
-	cd platforms/$(BROKER_PLTF) && $(MAKE) port-check
+broker-host-check: ## shows container service requirements status on local machine
+	cd platforms/$(BROKER_PLTF) && $(MAKE) ports-check
 
-broker-info: ## shows the broker docker related information
-	cd platforms/$(BROKER_PLTF) && $(MAKE) info
-
-broker-set: ## sets the broker enviroment file to build the container
+broker-set: ## sets the database and client enviroment file to build both container
 	cd platforms/$(BROKER_PLTF) && $(MAKE) env-set
 
-broker-build: ## builds broker and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+# --- #
+
+.PHONY: broker-info broker-build broker-create broker-ssh broker-start broker-stop broker-destroy
+
+broker-info: ## shows docker related information
+	cd platforms/$(BROKER_PLTF) && $(MAKE) info
+
+broker-build: ## builds and ensures changes in the Dockerfile, build steps, or copied-in files are applied
 	cd platforms/$(BROKER_PLTF) && $(MAKE) build
 
-broker-create: ## starts up broker or creates the container for running in detached mode
+broker-create: ## starts up or creates the container for running in detached mode
 	cd platforms/$(BROKER_PLTF) && $(MAKE) up
 
-broker-network: ## starts up broker into an existing custom network for container-to-container communication, runnning in detached mode
+broker-network: ## starts up into an existing custom network for container-to-container communication, runnning in detached mode
 	cd platforms/$(BROKER_PLTF) && $(MAKE) clear network
 
-broker-ssh: ## enters the broker container shell
+broker-ssh: ## enters the apirest container shell
 	cd platforms/$(BROKER_PLTF) && $(MAKE) ssh
 
-broker-start: ## starts the broker container running
+broker-start: ## starts the database container running
 	cd platforms/$(BROKER_PLTF) && $(MAKE) start
 
-broker-stop: ## stops the broker container but its assets will not be destroyed
+broker-stop: ## stops the database container but its assets will not be destroyed
 	cd platforms/$(BROKER_PLTF) && $(MAKE) stop
 
-broker-restart: ## restarts the running broker container
+broker-restart: ## restarts the running database container
 	cd platforms/$(BROKER_PLTF) && $(MAKE) restart
 
-broker-destroy: ## destroys completly the broker container
+broker-destroy: ## destroys completly the database container with its data
 	echo ${C_RED}"Attention!"${C_END};
-	echo ${C_YEL}"You're about to remove the "${C_BLU}"$(BROKER_PLTF)"${C_END}" container and delete its image resource."${C_END};
+	echo ${C_YEL}"You're about to remove the "${C_BLU}"$(BROKER_PLTF)"${C_END}" container and delete its image resource and persistance data."${C_END};
 	@echo -n ${C_RED}"Are you sure to proceed? "${C_END}"[y/n]: " && read response && if [ $${response:-'n'} != 'y' ]; then \
         echo ${C_GRN}"K.O.! container has been stopped but not destroyed."${C_END}; \
     else \
 		cd platforms/$(BROKER_PLTF) && $(MAKE) stop clear destroy; \
 		echo -n ${C_GRN}"Do you want to clear DOCKER cache? "${C_END}"[y/n]: " && read response && if [ $${response:-'n'} != 'y' ]; then \
-			echo ${C_YEL}"The following command is delegated to be executed by user:"${C_END}; \
+			echo ${C_YEL}"The following commands are delegated to be executed by user:"${C_END}; \
 			echo "$$ $(DOCKER) system prune"; \
+			echo "$$ $(DOCKER) volume prune"; \
 		else \
 			$(DOCKER) system prune; \
+			$(DOCKER) volume prune; \
+			echo ${C_GRN}"O.K.! DOCKER cache has been cleared up."${C_END}; \
+		fi \
+	fi
+
+# --- #
+
+.PHONY: broker-client-info broker-client-build broker-client-create broker-client-ssh broker-client-start broker-client-stop broker-client-destroy
+
+broker-client-info: ## shows docker related information
+	cd platforms/$(BROKER_PLTF) && $(MAKE) info-client
+
+broker-client-build: ## builds and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+	cd platforms/$(BROKER_PLTF) && $(MAKE) build-client
+
+broker-client-create: ## starts up or creates the container for running in detached mode
+	cd platforms/$(BROKER_PLTF) && $(MAKE) up-client
+
+broker-client-network: ## starts up into an existing custom network for container-to-container communication, runnning in detached mode
+	cd platforms/$(BROKER_PLTF) && $(MAKE) clear-client network-client
+
+broker-client-ssh: ## enters the apirest container shell
+	cd platforms/$(BROKER_PLTF) && $(MAKE) ssh-client
+
+broker-client-start: ## starts the database container running
+	cd platforms/$(BROKER_PLTF) && $(MAKE) start-client
+
+broker-client-stop: ## stops the database container but its assets will not be destroyed
+	cd platforms/$(BROKER_PLTF) && $(MAKE) stop-client
+
+broker-client-restart: ## restarts the running database container
+	cd platforms/$(BROKER_PLTF) && $(MAKE) restart-client
+
+broker-client-destroy: ## destroys completly the database container with its data
+	echo ${C_RED}"Attention!"${C_END};
+	echo ${C_YEL}"You're about to remove the "${C_BLU}"$(BROKER_PLTF)"${C_END}" container and delete its image resource and persistance data."${C_END};
+	@echo -n ${C_RED}"Are you sure to proceed? "${C_END}"[y/n]: " && read response && if [ $${response:-'n'} != 'y' ]; then \
+        echo ${C_GRN}"K.O.! container has been stopped but not destroyed."${C_END}; \
+    else \
+		cd platforms/$(BROKER_PLTF) && $(MAKE) stop-client clear-client destroy-client; \
+		echo -n ${C_GRN}"Do you want to clear DOCKER cache? "${C_END}"[y/n]: " && read response && if [ $${response:-'n'} != 'y' ]; then \
+			echo ${C_YEL}"The following commands are delegated to be executed by user:"${C_END}; \
+			echo "$$ $(DOCKER) system prune"; \
+			echo "$$ $(DOCKER) volume prune"; \
+		else \
+			$(DOCKER) system prune; \
+			$(DOCKER) volume prune; \
 			echo ${C_GRN}"O.K.! DOCKER cache has been cleared up."${C_END}; \
 		fi \
 	fi
