@@ -303,7 +303,7 @@ Repository directories structure overview
 │   └── ...etc
 │
 ├── platforms                   # remote infrastructure platforms
-│   ├── nginx-java-17
+│   ├── nginx-java-21
 │   │   ├── docker
 │   │   │   ├── config
 │   │   │   ├── .env
